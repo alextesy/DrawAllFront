@@ -2,11 +2,11 @@
     var canvas = document.getElementById("imgCanvas");
     var context = canvas.getContext("2d");
     canvas.addEventListener('click',createElement,false )
-    serverAddress='http:/localhost:8080/';
+    serverAddress='https://drawall.azurewebsites.net/';
     var shape='Triangle';
     var color='black';
     var size=50;
-    //var ip='0.0.0.0';
+    var ip;
     var currentElement;
     //var x;
     //var y;
@@ -22,7 +22,7 @@
  
     }
     function getIP(){
-        $.getJSON('https://ipinfo.io', function(data){
+        $.getJSON('https://json.geoiplookup.io/api?callback=?', function(data) {
             ip=data.ip;
         });
     }
@@ -66,7 +66,9 @@
         else if(element.shape=='Rectangle'){
             drawRectangle(element);
         }
-
+        else if(element.shape=='Star'){
+            drawStar(element);
+        }
     }
 
 
@@ -101,24 +103,52 @@
         context.closePath();
         context.fill();
     }
+    function drawStar(element){
 
+        var rot=Math.PI/2*3;
+        var x=element.x;
+        var cx=element.x;
+        var y=element.y;
+        var cy=element.y;
+        var outerRadius=element.size/2;
+        var innerRadius=element.size/4;
+        var spikes=10;
+        var step=Math.PI/spikes;
+
+        context.beginPath();
+        context.moveTo(cx,cy-outerRadius)
+        for(i=0;i<spikes;i++){
+            x=cx+Math.cos(rot)*outerRadius;
+            y=cy+Math.sin(rot)*outerRadius;
+            context.lineTo(x,y)
+            rot+=step
+
+            x=cx+Math.cos(rot)*innerRadius;
+            y=cy+Math.sin(rot)*innerRadius;
+            context.lineTo(x,y)
+            rot+=step
+        }
+        context.lineTo(cx,cy-outerRadius);
+        context.closePath();
+        context.fillStyle=element.color;
+        context.fill();
+          
+    }
 
     //Save Element to DB
     function saveElementDB(canvas,element) {
         var rect = canvas.getBoundingClientRect();
-        $.ajax({
-            method: "POST",
-            url: serverAddress+"element",
-            data:{
-                'ip':element.ip,
-                'shape':element.shape,
-                'color':element.color,
-                'size':element.size,
-                'x': element.x,
-                'y': element.y
-            },
-          
-          })
+
+        $.post( serverAddress+"element", {
+            'ip':element.ip,
+            'shape':element.shape,
+            'color':element.color,
+            'size':element.size,
+            'x': element.x,
+            'y': element.y
+        })
+        .done(function( data ) {
+        });
     }
 
 
