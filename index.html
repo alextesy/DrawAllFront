@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <script type='text/javascript' src = "jquery.js"></script>
+        <script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="style.css" />
+
+</head>
+    <body>
+        <div id="draw">
+            <table>
+                <tr>
+            <td><canvas id="imgCanvas" width="600" height="600"></canvas></td>
+            <td><tr><input type="button" value="Circle" onclick="saveElement(this.value)"></tr>
+                <tr><input type="button" value="Triangle" onclick="saveElement(this.value)"></tr>
+                <tr><input type="button" value="Rectangle" onclick="saveElement(this.value)"></tr>
+                <div class="slidecontainer">
+                    Size <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+                  </div>
+                <tr><input id="colorP" type="color"></tr>
+
+            </td>
+
+                </tr>
+            </table>
+        </div>
+        <script language="JavaScript" type="text/javascript" src="js.js"></script>
+
+    </body>
+    
+
+
+</html>
