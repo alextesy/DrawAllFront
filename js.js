@@ -2,12 +2,13 @@
     var canvas = document.getElementById("imgCanvas");
     var context = canvas.getContext("2d");
     canvas.addEventListener('click',createElement,false )
-    serverAddress='https://drawall.azurewebsites.net/';
+    serverAddress='http://localhost:8080/';
     var shape='Triangle';
     var color='black';
     var size=50;
     var ip;
     var currentElement;
+    var currentBoard='main';
     //var x;
     //var y;
     
@@ -17,9 +18,17 @@
     }
     function canvasReady(){
         canvas.onmousedown = draw;
-        getIP()
-        redraw()
- 
+        getBoard();
+        getIP();
+        redraw();
+    }
+    function getBoard(){
+        if(window.location.hash) {
+            var hash = window.location.hash.substring(1); //Puts hash in variable, and removes the # character
+            currentBoard=hash;
+        } else {
+            currentBoard='main';
+        }
     }
     function getIP(){
         $.getJSON('https://json.geoiplookup.io/api?callback=?', function(data) {
@@ -29,7 +38,7 @@
   
     //Redraw elements from DB 
     function redraw(){
-        $.getJSON(serverAddress, function(result){
+        $.getJSON(serverAddress+currentBoard, function(result){
             $.each(result, function(i, field){
                 field.size=parseInt(field.size);
                 draw(field)
@@ -135,11 +144,62 @@
           
     }
 
+    function createNewBoard(){
+        var name=document.getElementById('groupName').value;
+        var limit=document.getElementById('limitation').value       ;
+        var currip=ip;
+        if(limit<30){
+            alert("Please increase your limit");
+            return;
+        }
+        $.post( serverAddress+"newBoard", {
+            'name':name,
+            'limit':limit,
+            'ip':currip
+        })
+        .done(function( data ) {
+            if(data.response=="success"){
+                window.location.href =window.location.href+'#'+name;
+            }
+            else{
+                alert("The Name is already taken");
+            }
+
+        });
+    }
+    //
+    function showBoardOptions(){
+        var container = document.getElementById("newBoard");
+
+        var groupNameLabel=document.createElement('label');
+        groupNameLabel.id="groupNameLabel";
+        groupNameLabel.innerHTML = "Name your board";
+        var groupName = document.createElement('input');
+        groupName.id="groupName";
+        var limitationLabel=document.createElement('label');
+        limitationLabel.id="limitationLabel";
+        limitationLabel.innerHTML = "Max Number of Elements";
+        var limitation = document.createElement('input');
+        limitation.id="limitation";
+        var create=document.createElement('button');
+        create.id="create";
+        create.innerHTML="Create";
+        create.addEventListener('click', createNewBoard);
+        container.appendChild(groupNameLabel);
+        container.appendChild(groupName);
+        container.appendChild(limitationLabel);
+        container.appendChild(limitation);
+        container.appendChild(create);
+    }
+
+    
+
     //Save Element to DB
     function saveElementDB(canvas,element) {
         var rect = canvas.getBoundingClientRect();
 
         $.post( serverAddress+"element", {
+            'board':currentBoard,
             'ip':element.ip,
             'shape':element.shape,
             'color':element.color,
