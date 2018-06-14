@@ -9,6 +9,9 @@
     var ip;
     var currentElement;
     var currentBoard='main';
+    var boardAdmin=false;
+    var boardLimit;
+    var currentCapacity;
     //var x;
     //var y;
     
@@ -18,14 +21,25 @@
     }
     function canvasReady(){
         canvas.onmousedown = draw;
-        getBoard();
+        getBoardName();
         getIP();
+        getBoardProperties();
         redraw();
     }
-    function getBoard(){
+    function getBoardProperties(){
+        $.getJSON(serverAddress+'properties/'+currentBoard, function(result){
+            if(result[0].admin==ip){
+                boardAdmin=true;
+            }
+            boardLimit=parseInt(result[0].limit);
+        });
+    }
+    function getBoardName(){
         if(window.location.hash) {
             var hash = window.location.hash.substring(1); //Puts hash in variable, and removes the # character
             currentBoard=hash;
+            newBoardButton = document.getElementById("newBoard");
+            newBoardButton.parentNode.removeChild(newBoardButton);
         } else {
             currentBoard='main';
         }
@@ -39,6 +53,7 @@
     //Redraw elements from DB 
     function redraw(){
         $.getJSON(serverAddress+currentBoard, function(result){
+            currentCapacity=result.length;
             $.each(result, function(i, field){
                 field.size=parseInt(field.size);
                 draw(field)
@@ -48,6 +63,11 @@
 
     //Create an Element on a mouse click
     function createElement(e){
+        currentCapacity+=1;
+        if(currentCapacity>boardLimit){
+            alert("You have exceeded your elemnts limit, Please contact your board admin for deleting old elements");
+            return;
+        }
         var rect = canvas.getBoundingClientRect();
         var color=document.getElementById('colorP').value;
         var size=parseInt(document.getElementById('myRange').value);
@@ -160,6 +180,8 @@
         .done(function( data ) {
             if(data.response=="success"){
                 window.location.href =window.location.href+'#'+name;
+                alert("Your new boatd has been created");
+                window.location.reload(true);
             }
             else{
                 alert("The Name is already taken");
@@ -213,5 +235,7 @@
 
 
 
-    canvasReady();
+    $(document).ready(function(){
+        canvasReady();
+    }) 
 
