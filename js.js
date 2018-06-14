@@ -12,6 +12,7 @@
     var boardAdmin=false;
     var boardLimit;
     var currentCapacity;
+    var socket;
     //var x;
     //var y;
     
@@ -20,10 +21,13 @@
         shape=elm;
     }
     function canvasReady(){
+        socket=io.connect(serverAddress);
+        socket.on('mouse',draw)
         canvas.onmousedown = draw;
         getBoardName();
         getIP();
         getBoardProperties();
+
         redraw();
     }
     function getBoardProperties(){
@@ -79,8 +83,10 @@
             x:e.clientX - rect.left,
             y:e.clientY - rect.top,
         }
-        saveElementDB(canvas,currElement)
-        draw(currElement)
+        saveElementDB(canvas,currElement);
+        draw(currElement);
+        socket.emit('mouse',currElement);
+
 
     }
 
