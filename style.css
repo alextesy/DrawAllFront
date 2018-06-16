@@ -18,7 +18,7 @@ body {
   position: relative;
 }
 #logo:after {
-  content: "dreamdealer";
+  content: "Friend Board";
   position: absolute;
   left: 8px;
   top: 32px;
