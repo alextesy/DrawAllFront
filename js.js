@@ -3,7 +3,6 @@
     var context = canvas.getContext("2d");
     canvas.addEventListener('click',createElement,false )
     serverAddress='https://drawall.azurewebsites.net/';
-    var shape='Triangle';
     var color='black';
     var size=50;
     var ip;
@@ -13,37 +12,28 @@
     var boardLimit;
     var currentCapacity;
     var socket;
-    //var x;
-    //var y;
+  
     
     //Updating Variables Function
-    function saveElement(elm){
-        shape=elm;
-    }
+    
     function canvasReady(){
         socket=io.connect(serverAddress);
         socket.on('mouse',draw)
         canvas.onmousedown = draw;
         getBoardName();
         getIP();
-        getBoardProperties();
-
+        
         redraw();
     }
-    function getBoardProperties(){
-        $.getJSON(serverAddress+'properties/'+currentBoard, function(result){
-            if(result[0].admin==ip){
-                boardAdmin=true;
-            }
-            boardLimit=parseInt(result[0].limit);
-        });
-    }
+    
     function getBoardName(){
         if(window.location.hash) {
             var hash = window.location.hash.substring(1); //Puts hash in variable, and removes the # character
             currentBoard=hash;
             newBoardButton = document.getElementById("newBoard");
             newBoardButton.parentNode.removeChild(newBoardButton);
+            document.getElementById('logo').innerHTML = currentBoard+' Board';
+
         } else {
             currentBoard='main';
         }
@@ -51,19 +41,78 @@
     function getIP(){
         $.getJSON('https://json.geoiplookup.io/api?callback=?', function(data) {
             ip=data.ip;
+            $.getJSON(serverAddress+'properties/'+currentBoard, function(result){
+                if(result[0].admin==ip){
+                    boardAdmin=true;
+                }
+                else{
+                    $('#admin').hide();
+                }
+                boardLimit=parseInt(result[0].limit);
+            });
         });
     }
   
     //Redraw elements from DB 
     function redraw(){
+        ipArr=[];
+        shapeArr=[]
         $.getJSON(serverAddress+currentBoard, function(result){
             currentCapacity=result.length;
             $.each(result, function(i, field){
+                if(!(ipArr.indexOf(field.ip) > -1) ) {
+                    ipArr.push(field.ip);
+                    addIP(field.ip);
+                }
+                if(!(shapeArr.indexOf(field.shape) > -1) ) {
+                    shapeArr.push(field.shape);
+                    addShape(field.shape);
+                }
                 field.size=parseInt(field.size);
                 draw(field)
             });
         });
     }
+
+    function addIP(ip){
+        userip = document.getElementById('userip');
+        myOption1 = document.createElement("option");
+        myOption1.text = ip;
+        myOption1.value = ip;
+        userip.appendChild(myOption1);
+       
+    }
+    function addShape(shape){
+        shapes = document.getElementById('shapes');
+        myOption2 = document.createElement("option");
+        myOption2.text = shape;
+        myOption2.value = shape;
+        shapes.appendChild(myOption2);
+    }
+
+    function deleteip(){
+        var selectedip = $("#userip option:selected").val();
+        $.post( serverAddress+"adminDel", {
+            'col':'ip',
+            'ip':selectedip,
+            'board':currentBoard
+        })
+        .done(function(data){
+            window.location.reload(true);
+        })
+    }
+    function deleteshape(){
+        var selectedshape = $("#shapes option:selected").val();
+        $.post( serverAddress+"adminDel", {
+            'col':'shape',
+            'shape':selectedshape,
+            'board':currentBoard
+        })
+        .done(function(data){
+            window.location.reload(true);
+        })
+    }
+
 
     //Create an Element on a mouse click
     function createElement(e){
@@ -75,6 +124,8 @@
         var rect = canvas.getBoundingClientRect();
         var color=document.getElementById('colorP').value;
         var size=parseInt(document.getElementById('myRange').value);
+        var shape = $("input[name='options']:checked").val();
+
         var currElement={
             ip:ip,
             shape:shape,
@@ -104,6 +155,7 @@
         else if(element.shape=='Star'){
             drawStar(element);
         }
+        
     }
 
 
@@ -126,6 +178,9 @@
         context.arc(posx, posy, element.size/2, 0, 2*Math.PI);
         context.fill();
     }
+    
+
+    
     function drawTriangle(element){
         //var pos = getMousePos(canvas, e);
         posx = element.x;
@@ -172,7 +227,10 @@
 
     function createNewBoard(){
         var name=document.getElementById('groupName').value;
-        var limit=document.getElementById('limitation').value       ;
+        var limit=document.getElementById('limitation').value;
+        if(isNaN(limit)){
+            alert("Please enter a valid number")
+        }
         var currip=ip;
         if(limit<30){
             alert("Please increase your limit");
@@ -185,8 +243,8 @@
         })
         .done(function( data ) {
             if(data.response=="success"){
-                window.location.href =window.location.href+'#'+name;
-                alert("Your new boatd has been created");
+                window.location.href =window.location.href+'#'+ name;
+                alert("Your new board has been created");
                 window.location.reload(true);
             }
             else{
@@ -242,6 +300,7 @@
 
 
     $(document).ready(function(){
+       
         canvasReady();
     }) 
 

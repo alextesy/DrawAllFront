@@ -8,19 +8,42 @@
 
 </head>
     <body>
-        <div id='newBoard'>
-            <button onclick="showBoardOptions()" >Create board for my group</button>
-        </div>
+           <center> <div id="header">
+                    <a href="/" id="logo">Friend Board</a>
+                   
+                  </div></center>
+</br>
+</br>
+</br>
+
+
+        <center><div id='newBoard'>
+            <button class="btn btn-success" onclick="showBoardOptions()" >Create new board</button>
+        </div></center>
         <div >
             <center><table>
                 <tr>
                        
 
             <td><canvas id="imgCanvas" width="1200" height="500" style="border: 1px solid black;"> </td>
-            <td><tr><input type="button" value="Circle" onclick="saveElement(this.value)"></tr>
-                <tr><input type="button" value="Triangle" onclick="saveElement(this.value)"></tr>
-                <tr><input type="button" value="Rectangle" onclick="saveElement(this.value)"></tr>
-                <tr><input type="button" value="Star" onclick="saveElement(this.value)"></tr>
+            <td><div class="btn-group" data-toggle="buttons">
+                    <tr><label class="btn btn-secondary">
+                      <input type="radio" name="options" id="option1" autocomplete="off" value="Triangle" checked>Triangle
+                      </label></tr>
+                    <tr><label class="btn btn-secondary">
+                      <input type="radio" name="options" id="option2" autocomplete="off" value="Circle"> Circle
+                    </label></tr>
+                    <tr><label class="btn btn-secondary">
+                      <input type="radio" name="options" id="option3" autocomplete="off"  value="Rectangle"> Rectangle
+                    </label></tr>
+                     <tr><label class="btn btn-secondary">
+                      <input type="radio" name="options" id="option4" autocomplete="off"  value="Star"> Star
+                    </label></tr>
+                   
+                  </div>
+                
+                
+               
 
                 <div class="slidecontainer">
                     Size <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
@@ -31,6 +54,15 @@
 
                 </tr>
             </table></center>
+            <div id="admin">
+                Admin Part</br>
+                User<select id="userip"></select>
+                <button id="useripdelete" onclick="deleteip()" >Delete</button>
+
+                Shape<select id="shapes"></select>
+                <button id="deleteShape" onclick="deleteshape()">Delete</button>
+            </div>
+
         </div>
         <script src="/socket.io/socket.io.js"></script>
         <script type='text/javascript' src = "jquery.js"></script>
