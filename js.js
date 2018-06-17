@@ -148,7 +148,6 @@
         }
         saveElementDB(canvas,currElement);
         
-        socket.emit('mouse',currElement);
 
 
     }
@@ -312,6 +311,7 @@
                 alert("you have exceeded your num of elements");
             }
             else{
+                socket.emit('mouse',element);
                 draw(element);
             }
         });
