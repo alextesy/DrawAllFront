@@ -2,7 +2,7 @@
     var canvas = document.getElementById("imgCanvas");
     var context = canvas.getContext("2d");
     canvas.addEventListener('click',createElement,false )
-    serverAddress='https://drawall.azurewebsites.net/';
+    serverAddress='http://localhost:8080/';
     var color='black';
     var size=50;
     var ip;
@@ -14,18 +14,27 @@
     var socket;
   
     
-    //Updating Variables Function
+    //Initializing Boards properties
     
     function canvasReady(){
         socket=io.connect(serverAddress);
         socket.on('mouse',draw)
         canvas.onmousedown = draw;
+        getStats();
         getBoardName();
         getIP();
-        
         redraw();
     }
+
+    function getStats(){
+        $.getJSON(serverAddress+'Top', function(result){
+            document.getElementById("frequentUser").innerHTML=result.ip;
+            document.getElementById("frequentShape").innerHTML=result.shape;
     
+        });
+    }
+    
+    //Gets Board name from the url
     function getBoardName(){
         if(window.location.hash) {
             var hash = window.location.hash.substring(1); //Puts hash in variable, and removes the # character
@@ -38,6 +47,8 @@
             currentBoard='main';
         }
     }
+
+    //Gets client Ip and checks whether he is an admin
     function getIP(){
         $.getJSON('https://json.geoiplookup.io/api?callback=?', function(data) {
             ip=data.ip;
@@ -57,7 +68,7 @@
     function redraw(){
         ipArr=[];
         shapeArr=[]
-        $.getJSON(serverAddress+currentBoard, function(result){
+        $.getJSON(serverAddress+'board/'+currentBoard, function(result){
             currentCapacity=result.length;
             $.each(result, function(i, field){
                 if(!(ipArr.indexOf(field.ip) > -1) ) {
@@ -74,6 +85,7 @@
         });
     }
 
+    //Adds an ip to admin panel
     function addIP(ip){
         userip = document.getElementById('userip');
         myOption1 = document.createElement("option");
@@ -82,6 +94,7 @@
         userip.appendChild(myOption1);
        
     }
+    //Adds a shape to admin panel
     function addShape(shape){
         shapes = document.getElementById('shapes');
         myOption2 = document.createElement("option");
@@ -89,7 +102,7 @@
         myOption2.value = shape;
         shapes.appendChild(myOption2);
     }
-
+    //Deletes the IP's elenents (from admnin panel)
     function deleteip(){
         var selectedip = $("#userip option:selected").val();
         $.post( serverAddress+"adminDel", {
@@ -101,6 +114,8 @@
             window.location.reload(true);
         })
     }
+
+    //Deletes the Sahape's elenents (from admnin panel)
     function deleteshape(){
         var selectedshape = $("#shapes option:selected").val();
         $.post( serverAddress+"adminDel", {
@@ -117,10 +132,7 @@
     //Create an Element on a mouse click
     function createElement(e){
         currentCapacity+=1;
-        if(currentCapacity>boardLimit){
-            alert("You have exceeded your elemnts limit, Please contact your board admin for deleting old elements");
-            return;
-        }
+      
         var rect = canvas.getBoundingClientRect();
         var color=document.getElementById('colorP').value;
         var size=parseInt(document.getElementById('myRange').value);
@@ -135,7 +147,7 @@
             y:e.clientY - rect.top,
         }
         saveElementDB(canvas,currElement);
-        draw(currElement);
+        
         socket.emit('mouse',currElement);
 
 
@@ -225,6 +237,7 @@
           
     }
 
+    //Creates new Board with the provided properties
     function createNewBoard(){
         var name=document.getElementById('groupName').value;
         var limit=document.getElementById('limitation').value;
@@ -253,10 +266,9 @@
 
         });
     }
-    //
+    //Function that controls the visualization of creating a new board
     function showBoardOptions(){
         var container = document.getElementById("newBoard");
-
         var groupNameLabel=document.createElement('label');
         groupNameLabel.id="groupNameLabel";
         groupNameLabel.innerHTML = "Name your board";
@@ -285,6 +297,7 @@
         var rect = canvas.getBoundingClientRect();
 
         $.post( serverAddress+"element", {
+            'limit':boardLimit,
             'board':currentBoard,
             'ip':element.ip,
             'shape':element.shape,
@@ -294,13 +307,19 @@
             'y': element.y
         })
         .done(function( data ) {
+            if(data=='Error')
+            {
+                alert("you have exceeded your num of elements");
+            }
+            else{
+                draw(element);
+            }
         });
     }
 
 
 
     $(document).ready(function(){
-       
         canvasReady();
     }) 
 
